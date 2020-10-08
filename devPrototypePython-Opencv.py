@@ -5,6 +5,7 @@ from pygame.locals import KEYDOWN, K_ESCAPE, K_q
 import pygame
 import cv2
 import sys
+import keyboard
 
 #initialise PyGame
 pygame.init()
@@ -52,46 +53,61 @@ def afficherPosition(Posx,Posy):
 	couleur = ""
 	if((Posx>0 and Posx<fullWidth) and (Posy>0 and Posy <fullHeight) and emplacement == ""):
 		if(Posy > halfHeight):
-			print("\nPartie inférieure")
+			# print("\nPartie inférieure")
 			emplacement+= "I"
 		elif(Posy < halfHeight):
-			print("\nPartie supperieur")
+			# print("\nPartie supperieur")
 			emplacement+= "S"
 		if(Posx >halfWidth):
-			print("Cote droit\n")
+			# print("Cote droit\n")
 			emplacement+= "D"
 		elif(Posx <halfWidth) :
-			print("Cote gauche\n")
+			# print("Cote gauche\n")
 			emplacement+= "G"
 		if emplacement == "IG":
-			print("zone magenta")
+			# print("zone magenta")
 			couleur = "Magenta"
 		elif emplacement == "ID":
-			print("zone verte")
+			# print("zone verte")
 			couleur = "Vert"
 		elif emplacement == "SG":
-			print("zone jaune")
+			# print("zone jaune")
 			couleur = "Jaune"
 		elif emplacement == "SD":
-			print("zone cyan") 
-			couleur = "Cyan"
+			# print("zone cyan") 
+				couleur = "Cyan"
 	return emplacement, couleur
 #Jouer le son correspondant	
 def jouerSon(emplacement_temp,emplacement):
 	# pygame.mixer.music.stop()
 	if(emplacement_temp!=emplacement):
 		if emplacement == "IG":
+			keyboard.press('right')
+			# time.sleep(2)
 			pygame.mixer.music.load('red.mp3')
 			pygame.mixer.music.play()
+			# keyboard.release('up')
+			keyboard.release('down')
 		if emplacement == "ID":
+			keyboard.press('down')
+			# time.sleep(0.2)
+			# keyboard.release('down')
+			keyboard.release('up')
 			pygame.mixer.music.load('green.mp3')
 			pygame.mixer.music.play()
 		if emplacement == "SG":
+			keyboard.press('left')
+			# time.sleep(0.2)
 			pygame.mixer.music.load('yellow.mp3')
 			pygame.mixer.music.play()
+			# keyboard.release('left')
 		if emplacement == "SD":
+			keyboard.press('up')
+			# time.sleep(0.2)
 			pygame.mixer.music.load('blue.mp3')
 			pygame.mixer.music.play()
+			# keyboard.release('up')
+
 emplacement_temp = ""	
 
 newCol = random.choice(colors)
@@ -108,32 +124,12 @@ def camRun():
 	screen.fill([0, 0, 0])
 	frame = frame.swapaxes(0, 1)
 	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+	fps =webcam.get(cv2.CAP_PROP_FPS)
+	print(fps)
 	pygame.surfarray.blit_array(screen, frame)
 	screen.blit(s, (0,0))
 	return frame
 
-# def detect(frame):
-# 	frame = frame.swapaxes(0, 1)
-# 	HSV = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV) 	
-# 	red_lower = np.array([164 ,188  ,80], np.uint8) 
-# 	red_upper = np.array([255, 255 ,255], np.uint8) 
-# 	red_mask = cv2.inRange(HSV, red_lower, red_upper) 	
-# 	kernal = np.ones((5, 5), "uint8") 	
-# 	red_mask = cv2.dilate(red_mask, kernal) 
-# 	res_red = cv2.bitwise_and(frame, frame,mask = red_mask) 
-# 	contours, hierarchy = cv2.findContours(red_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) 
-# 	for pic, contour in enumerate(contours):
-# 		area = cv2.contourArea(contour) 
-# 		if(area > 300): #Si la taille de l'obj > 300 px
-# 			x, y, w, h = cv2.boundingRect(contour) 
-# 			Posx = x+w//2 #Position X du centre de l'objet
-# 			Posy = y+h//2 #Position X du centre de l'objet
-# 			Pw = w #Largeur de l'obj
-# 			Ph = h #Hauteur de l'obj
-# 			rayon =((Pw+Ph)//2)%halfHeight//2 #Le rayon change avec la distance 
-# 			pygame.draw.circle(screen, (0, 0, 255), (Posx, Posy), rayon)
-# 			return (True,(Posx,Posy))
-# 	return(False,(0,0))
 def gameIntro():
 	intro = True
 	while intro:
@@ -153,17 +149,7 @@ def gameIntro():
 		click = pygame.mouse.get_pressed()
 		if click[0] == 1 :
 			break
-		# screen.fill(white)
-		# largeText = pygame.font.SysFont("comicsansms",115)
-		# TextSurf, TextRect = text_objects("A bit Racey", largeText)
-		# TextRect.center = ((display_width/2),(display_height/2))
-		# gameDisplay.blit(TextSurf, TextRect)
-
-		# button("GO!",150,450,100,50,green,bright_green,gameLoop)
-		# button("Quit",550,450,100,50,red,bright_red,quitgame)
-
 		pygame.display.update()
-		# clock.tick(15)
 
 def gameLoop():
 	emplacement_temp = ""
@@ -176,13 +162,7 @@ def gameLoop():
 	Pw, Ph = 25,25 
 	points = 0
 	while(1): 
-
 		frame = camRun()
-	#Masque rouge
-		# if(detect(frame)[0]):
-		# 	Posx, Posy= detect(frame)[1]
-		#Incrustation du feed webcam sur l'écran
-		# frame = frame.swapaxes(0, 1)
 		dessinerGrille()
 		frame = frame.swapaxes(0, 1)
 		HSV = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV) 	
@@ -212,32 +192,15 @@ def gameLoop():
 					timeLeft= int(time.time())+niveau
 					points+=1
 					newCol = random.choice(colors) 
-		#Pour chaque objet detecté
-		# for pic, contour in enumerate(contours):
-		# 	area = cv2.contourArea(contour) 
-		# 	if(area > 300): #Si la taille de l'obj > 300 px
-		# 		x, y, w, h = cv2.boundingRect(contour) 
-		# 		Posx = x+w//2 #Position X du centre de l'objet
-		# 		Posy = y+h//2 #Position X du centre de l'objet
-		# 		Pw = w #Largeur de l'obj
-		# 		Ph = h #Hauteur de l'obj
-		# 		rayon =((Pw+Ph)//2)%halfHeight//2 #Le rayon change avec la distance 
-		# 		pygame.draw.circle(screen, (0, 0, 255), (Posx, Posy), rayon)
-		 
 	
 		screen.blit(txtP,(halfWidth-50,halfHeight-50))
-		# print(newCol)
 		currenTime = int(time.time())
 		if(currenTime == timeLeft):
 			currenTime = int(time.time())
 			newCol = random.choice(colors)
 			timeLeft = currenTime+niveau
-			# print(timeLeft)
-			# print(newCol)
-		# print(newCol, "&r")
+
 		txtP= myfont.render(newCol, True, (255,255,255))
-		# screen.blit(txtP,(halfWidth-50,halfHeight-50))
-			# currenTime = time.time()
 	
 		pygame.display.update()
 		
