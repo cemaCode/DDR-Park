@@ -1,0 +1,15 @@
+window_sizes 1366 705 320 1041 555 104
+
+diagrams
+  deploymentdiagram_ref 128002 // fs
+    875 506 100 A4 0 0
+  active  collaborationdiagram_ref 128258 //  s
+    1041 555 100 A4 0 0
+end
+show_stereotypes
+selected collaborationdiagram_ref 128258 //  s
+open
+  deploymentview_ref 128002 // fs
+  usecaseview_ref 128002 // gs
+end
+end
