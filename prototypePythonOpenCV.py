@@ -1,6 +1,4 @@
-import time
 import numpy as np 
-import random
 from pygame.locals import KEYDOWN, K_ESCAPE, K_q
 import pygame
 import cv2
@@ -10,6 +8,8 @@ import keyboard
 #Initialisations PyGame 
 pygame.init()
 pygame.display.set_caption("Prototype DDR Park")
+icon  = pygame.image.load("iconF.png")
+pygame.display.set_icon(icon)
 screen = pygame.display.set_mode((640, 480))
 taille = pygame.display.Info()
 fullSize = fullWidth,fullHeight = taille.current_w, taille.current_h
@@ -17,23 +17,29 @@ halfSize = halfWidth,halfHeight = fullWidth//2,fullHeight//2
 Hpoint4, Hpoint2  = int(fullHeight*0.4), int(fullHeight*0.2)
 Wpoint4, Wpoint2  = int(fullWidth*0.4), int(fullWidth*0.2)
 s = pygame.Surface((fullWidth,fullHeight), pygame.SRCALPHA)   
-s.fill((0,0,0,0))                         
-pygame.font.init()
-myfont = pygame.font.SysFont('verdanaprosemibold', 30)
 arrUp = pygame.image.load("arrow_up.png").convert_alpha()
 arrDown = pygame.image.load("arrow_down.png").convert_alpha()
 arrLeft = pygame.image.load("arrow_left.png").convert_alpha()
 arrRight = pygame.image.load("arrow_right.png").convert_alpha()
-selectIcon  = pygame.image.load("selectCut.png").convert_alpha() 
+selectIcon  = pygame.image.load("startw.png").convert_alpha() 
+# selectIcon  = pygame.image.load("selectCut.png").convert_alpha() 
 arrUp = pygame.transform.scale(arrUp, (164,164))
 arrDown =  pygame.transform.scale(arrDown,(164,164))
 arrLeft =  pygame.transform.scale(arrLeft, (164,164))
 arrRight =  pygame.transform.scale(arrRight, (164,164))
-selectIcon =  pygame.transform.scale(selectIcon, (124,48))
+# selectIcon =  pygame.transform.scale(selectIcon, (124,48))
+selectIcon =  pygame.transform.scale(selectIcon, (130,51))
 
 #Lancement de la webcam
 webcam = cv2.VideoCapture(0) 
+
+def calibrate():
+	from color_tracker import WebCamera, HSVColorRangeDetector
 	
+	cam  = WebCamera(video_src = 0)
+	cam.start_camera()
+	detector = HSVColorRangeDetector(camera= cam)
+	low, up, kern = detector.detect()
 #Detection du marqueur vert
 def detecGreen(green_mask):
 	contours, hierarchy = cv2.findContours(green_mask,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) 
@@ -97,12 +103,59 @@ def newGrid():
 	global infD
 	global selRect
 	screen.blit(s, (0,0))
+	w4 = fullWidth//6
+	h4 = fullHeight//6
+	#DDR MAT / CROSS STYLE
+	"""
+	infDroitRect = pygame.Rect(w4*4, h4*2, w4*2+4, h4*2) # Right 
+	infGaucheRect = pygame.Rect(w4*2,h4*4, w4*2,h4*2) # Down
+	supDroitRect = pygame.Rect(w4*2,0, w4*2,h4*2) # Up
+	supGaucheRect = pygame.Rect(0, h4*2, w4*2, h4*2) # Left
+	"""
+	# DDR MAT / CROSS STYLE *SPACED*
+	"""
+	infDroitRect = pygame.Rect(Wpoint4+Wpoint2*2, h4*2, w4*2+4, h4*2) # Right 
+	infGaucheRect = pygame.Rect(w4*2,h4*5, w4*2,h4*2) # Down
+	supDroitRect = pygame.Rect(w4*2,0, w4*2,Hpoint2) # Up
+	supGaucheRect = pygame.Rect(0, h4*2, Wpoint2, h4*2) # Left
+	"""
+	#CLASSIC 4 CORNERS BIG STYLE
+	"""
 	infDroitRect = pygame.Rect(Wpoint4+Wpoint2,Hpoint4+Hpoint2, fullWidth,fullHeight)#Vert (n4)
 	infGaucheRect = pygame.Rect(0,Hpoint4+Hpoint2,Wpoint4,fullHeight)#Cyan (n3)
 	supDroitRect = pygame.Rect(Wpoint4+Wpoint2,0,fullWidth,Hpoint4)#Jaune (n2)
 	supGaucheRect = pygame.Rect(0,0,Wpoint4,Hpoint4)#Magenta (n1)
+	"""
+	#SMALL / FAR 4 CORNERS STYLE
+	"""
+	infDroitRect = pygame.Rect(Wpoint4+Wpoint4,Hpoint4+Hpoint4, fullWidth,fullHeight)#Vert (n4)
+	infGaucheRect = pygame.Rect(0,Hpoint4+Hpoint4,Wpoint2,fullHeight)#Cyan (n3)
+	supDroitRect = pygame.Rect(Wpoint4+Wpoint4,0,fullWidth,Hpoint2)#Jaune (n2)
+	supGaucheRect = pygame.Rect(0,0,Wpoint2,Hpoint2)#Magenta (n1)
+	"""
+	#TOP SLAB STYLE
+	# """
+	infDroitRect = pygame.Rect(Wpoint2,0, Wpoint2,h4*2)#Vert (n4) (Right/Droite ->)
+	infGaucheRect = pygame.Rect(Wpoint2*3,0,Wpoint2,h4*2)#Cyan (n3) (Down/Bas)
+	supDroitRect = pygame.Rect(Wpoint2*4,0,Wpoint2,h4*2)#Jaune (n2)(up/Haut î)
+	supGaucheRect = pygame.Rect(0,0,Wpoint2,h4*2)#Magenta (n1) (Left/Gauche <- )
+	# """
+	#BOTTOM SLAB STYLE
+	"""
+	infDroitRect = pygame.Rect(Wpoint2,Hpoint2*3, Wpoint2,Hpoint4	)#Vert (n4) (Right/Droite ->)
+	infGaucheRect = pygame.Rect(Wpoint2*3,Hpoint2*3,Wpoint2,Hpoint4)#Cyan (n3) (Down/Bas)
+	supDroitRect = pygame.Rect(Wpoint2*4,Hpoint2*3,Wpoint2,Hpoint4)#Jaune (n2)(up/Haut î)
+	supGaucheRect = pygame.Rect(0,Hpoint2*3,Wpoint2,Hpoint4)#Magenta (n1) (Left/Gauche <- )
+	"""
+	#4 CORNER STYLE *DIFFERENT ARROW LAYOUT* 
+	"""
+	infDroitRect = pygame.Rect(0,Hpoint2*3,Wpoint4,Hpoint4)#Vert (n4) (Right/Droite ->)
+	infGaucheRect = pygame.Rect(Wpoint2*3,Hpoint2*3,Wpoint4,Hpoint4)#Cyan (n3) (Down/Bas)
+	supDroitRect = pygame.Rect(Wpoint2*3,0,Wpoint4,Hpoint4)#Jaune (n2)(up/Haut î)
+	supGaucheRect = pygame.Rect(0,0,Wpoint4,Hpoint4)#Magenta (n1) (Left/Gauche <- )
+	"""
 	selectRect=  pygame.Rect(Wpoint4,Hpoint4,Wpoint2,Hpoint2)#Select (n5)
-	rects = [ infDroitRect,infGaucheRect,supDroitRect, supGaucheRect,selectRect]
+	rects = [ supGaucheRect,supDroitRect,infGaucheRect, infDroitRect,selectRect] # L'ordre est imporatant
 	supG = pygame.draw.rect(s,(255,0,255,128),supGaucheRect)
 	supD = pygame.draw.rect(s,(255,255,0,128),supDroitRect)
 	infG = pygame.draw.rect(s,(0,255,255,128),infGaucheRect)
@@ -128,30 +181,16 @@ def newGrid():
 #Detection de collison marqueur-rectancle
 def collisionDetec(rects,mouse):
 	contact = 0
-	for rect in rects:
+	for i, rect in enumerate(rects):
 		if (rect.collidepoint(mouse)):
-			if(rect[0]==0):
-				if(rect[1]==0):
-					contact = 1
-				else:
-					contact = 3
-			elif(rect[0]==Wpoint4+Wpoint2):
-				if(rect[1]==0):
-					contact = 2
-				else:
-					contact = 4
-			else:
-				contact = 5
+			if(rect==rects[i]):
+				contact = i+1
 	return contact
 
 #Lancement du feed webcam et affichage
 def camRun():
 	ret, frame = webcam.read()
-	try:
-		frame = cv2.resize(frame,(fullWidth,fullHeight), interpolation = cv2.INTER_CUBIC)
-	except:
-		print("Erreur: Webcam Inaccessible\n Fermez une autre fenetre qui utilise la webcam et relancez")
-		quit()
+	frame = cv2.resize(frame,(fullWidth,fullHeight), interpolation = cv2.INTER_CUBIC)
 	frame =cv2.flip(frame,1)
 	screen.fill([0, 0, 0])
 	frame = frame.swapaxes(0, 1)
@@ -168,19 +207,42 @@ def quitAll():
 
 #Page d'introduction (Titre) du jeu 'Optionel'
 def gameIntro():
+	starter = pygame.image.load("startw.png").convert_alpha()
+	starter =  pygame.transform.scale(starter, (130,51))
 	intro = True
 	while intro:
+		inSurf = pygame.Surface(fullSize, pygame.SRCALPHA)
+		inSurf.fill((128,128,128))
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				quitAll()
-		frame = camRun()
+		btns = pygame.Rect(10,340,140,100)
+		btns2 = pygame.Rect(140+10+10,340,140,100)
+		btns3 = pygame.Rect(140*2+10*3,340,140,100)
+		btns4 = pygame.Rect(140*3+10*4,340,140,100)
+		pygame.draw.rect(inSurf,(100,100,100,50),btns)
+		pygame.draw.rect(inSurf,(100,100,100,50),btns2)
+		pygame.draw.rect(inSurf,(100,100,100,50),btns3)
+		pygame.draw.rect(inSurf,(100,100,100,50),btns4)
 		largeText = pygame.font.SysFont("arial",115)
-		txtInrto = largeText.render('DDR Park', True, (128,255,128))
+		btnTxt = pygame.font.SysFont("arial", 35)
+		txtLayout = btnTxt.render('Interface', True, (200,200,200) )
+		btnLayouytRect = txtLayout.get_rect()
+		btnLayouytRect.center = btns.center
+		txtSongs = btnTxt.render('Chansons', True, (200,200,200) )
+		btnSongsRect = txtSongs.get_rect()
+		btnSongsRect.center = btns2.center
+		txtInrto = largeText.render('DDR-Park', True, (200,200,200))
 		textRect = txtInrto.get_rect()
-		textRect.center = halfSize
+		textRect.center = (halfWidth,halfHeight-100)
+		pygame.draw.rect(inSurf,(100,100,100,50),textRect) #Magenta
+		
+		
+		# screen.blit(starter,(100,100) )
+		screen.blit(inSurf,(0,0))
 		screen.blit(txtInrto,textRect)
-		GI = pygame.Rect(0,halfHeight,halfWidth,halfHeight)
-		pygame.draw.rect(s,(255,0,255,50),textRect) #Magenta
+		screen.blit(txtLayout,btnLayouytRect)
+		screen.blit(txtSongs,btnSongsRect)
 		pygame.display.update()
 		click = pygame.mouse.get_pressed()
 		if click[0] == 1 :
@@ -191,16 +253,6 @@ def gameLoop():
 	webcam = cv2.VideoCapture(0) 
 	Pw, Ph = 25,25
 	Posx,Posy = 1000,1000
-	colors = ["Jaune", "Magenta","Cyan","Vert" ]
-	emplacement_temp = ""
-	newCol = random.choice(colors)
-	txtP= myfont.render(newCol, False, (255,255,255))
-	niveau=10
-	currenTime = int(time.time())
-	timeLeft = currenTime+niveau
-	mouse = Posx,Posy = 1000,1000
-	Pw, Ph = 25,25 
-	points = 0
 	while(1): 
 		frame = camRun()
 		rects = newGrid()
@@ -219,8 +271,6 @@ def gameLoop():
 
 		red_mask = cv2.dilate(red_mask, kernal) 
 		res_red = cv2.bitwise_and(frame, frame,mask = red_mask) 
-		green_mask = cv2.dilate(green_mask, kernal) 
-		# res_red = cv2.bitwise_and(frame, frame,mask = red_mask) 
 		Redpointeur, Redrayon = detecRed(red_mask)
 		Greenpointeur, Greenrayon = detecGreen(green_mask)
 
@@ -240,6 +290,6 @@ def gameLoop():
 			elif event.type == KEYDOWN:
 				if event.key == K_ESCAPE or event.key == K_q:
 					quitAll()
-#gameIntro()
+# gameIntro()
 #Lancement du jeu
 gameLoop()
